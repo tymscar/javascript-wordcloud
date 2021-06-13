@@ -4,7 +4,7 @@ const topicsDiv = document.getElementById("topics__div")
 const canvas = document.getElementById("cloudCanvas")
 const canvasCtx = canvas.getContext('2d');
 
-const gap = 1
+const gap = 10
 canvas.width = window.innerWidth * 0.7
 canvas.height = canvas.width * 0.5625
 
@@ -16,7 +16,10 @@ canvasCtx.fillStyle = "white"
 
 
 const drawCloud = (topics) => {
+
   const placedTopics = []
+  let directionOfDrawing = 0
+  let startPos = [canvas.width / 2, canvas.height / 2]
 
   topics.forEach(topic => {
     canvasCtx.font = '20px sans serif'
@@ -26,27 +29,31 @@ const drawCloud = (topics) => {
 
 
 
-    let increment = 0
 
-    topic.left = canvas.width / 2 - currTextSize.width / 2
+    topic.left = startPos[0] - currTextSize.width / 2
     topic.width = currTextSize.width
-    topic.down = canvas.height / 2 + currTextSize.actualBoundingBoxAscent / 2 + currTextSize.actualBoundingBoxDescent / 2
+    topic.down = startPos[1] + currTextSize.actualBoundingBoxAscent / 2 + currTextSize.actualBoundingBoxDescent / 2
     topic.height = currTextSize.actualBoundingBoxAscent + currTextSize.actualBoundingBoxDescent
 
 
     let canBePlaced = true
-    let goUp = true
 
     do {
-      console.log(placedTopics.length)
+      console.log(directionOfDrawing)
       canBePlaced = true
-      if (goUp) {
-        topic.down += increment
-        goUp = false
-      } else {
-        topic.left += increment
-        increment += gap
-        goUp = true
+
+      switch (directionOfDrawing) {
+        case 0:
+          topic.down -= gap
+          break;
+        case 1:
+          topic.left += gap
+          break;
+        case 2:
+          topic.down += gap
+          break;
+        case 3:
+          topic.left -= gap
       }
 
 
@@ -56,11 +63,23 @@ const drawCloud = (topics) => {
         }
       })
 
+      if (topic.left < 0 || (topic.left + topic.width > canvas.width) || topic.down > canvas.height || (topic.down - topic.height < 0)) {
+        topic.left = canvas.width / 2 - currTextSize.width / 2
+        topic.width = currTextSize.width
+        topic.down = canvas.height / 2 + currTextSize.actualBoundingBoxAscent / 2 + currTextSize.actualBoundingBoxDescent / 2
+        topic.height = currTextSize.actualBoundingBoxAscent + currTextSize.actualBoundingBoxDescent
+        canBePlaced = false
+        directionOfDrawing = (directionOfDrawing + 1) % 4
+      }
+
+
     } while (!canBePlaced);
 
 
     canvasCtx.fillText(word, topic.left, topic.down)
     placedTopics.push(topic)
+    directionOfDrawing = (directionOfDrawing + 1) % 4
+    startPos = [topic.left, topic.down]
   })
 }
 
@@ -69,6 +88,7 @@ const getTopicsJson = async (URL) => {
   const topicsResponse = await fetch(URL)
   const topicsJson = await topicsResponse.json()
   const topics = topicsJson["topics"]
+  console.log(topics.length)
   return topics
 }
 
