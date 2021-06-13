@@ -1,22 +1,24 @@
 <!doctype html>
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
 
-        <title>My Topics Challenge</title>
-        <meta name="author" content="tymscar">
+<head>
+    <meta charset="utf-8">
 
-        <link rel="stylesheet" href="styles.css">
-        
-    </head>
+    <title>My Topics Challenge</title>
+    <meta name="author" content="tymscar">
 
-    <body>
-        <h1>My Topics Challenge</h1>
-        <canvas id="cloudCanvas" ></canvas>
+    <link rel="stylesheet" href="styles.css">
 
-        <div id="topics__div"> </div>
-        
-        <script type="module" src="main.js"></script>
-    </body>
+</head>
+
+<body>
+    <h1>My Topics Challenge</h1>
+    <canvas id="cloudCanvas"></canvas>
+    <input type="range" min="1" max="20" value="3" class="slider" id="fontSlider">
+    <input type="range" min="1" max="100" value="1" class="slider" id="paddingSlider">
+
+    <script type="module" src="main.js"></script>
+</body>
+
 </html>
