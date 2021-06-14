@@ -1,126 +1,24 @@
 import Topic from "./modules/topic.js"
+import Cloud from "./modules/cloud.js"
 
-var fontSlider = document.getElementById("fontSlider");
-var paddingSlider = document.getElementById("paddingSlider");
+const fontSlider = document.getElementById("fontSlider")
+const paddingSlider = document.getElementById("paddingSlider")
 const canvas = document.getElementById("cloudCanvas")
-const canvasCtx = canvas.getContext('2d');
-
-
-//REFACTOR THIS. Only for testing
-let temporaryTopics
-
-const jumpDistance = 5
-let fontSize = fontSlider.value
-let padding = paddingSlider.value
-
-canvas.width = window.innerWidth * 0.7
-canvas.height = canvas.width * 0.5625
-
-fontSlider.oninput = () => {
-  fontSize = fontSlider.value
-  drawCloud(temporaryTopics)
-}
-
-paddingSlider.oninput = () => {
-  padding = paddingSlider.value;
-  drawCloud(temporaryTopics)
-}
 
 
 
 
 
-const drawCloud = (topics) => {
-  canvasCtx.fillStyle = "black"
-  canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
-  canvasCtx.fillStyle = "white"
-
-  const placedTopics = []
-  let directionOfDrawing = 0
-  let startPos = [canvas.width / 2, canvas.height / 2]
-
-  let tilesNotDrawn = 0
-
-  topics.forEach(topic => {
-    canvasCtx.font = `${fontSize * topic.textSize}px sans serif`
-    const word = topic.label
-    const currTextSize = canvasCtx.measureText(word)
+// canvas.addEventListener("mousemove", function (e) {
+//   var cRect = canvas.getBoundingClientRect();              // Gets the CSS positions along with width/height
+//   var canvasX = Math.round(e.clientX - cRect.left);        // Subtract the 'left' of the canvas from the X/Y
+//   var canvasY = Math.round(e.clientY - cRect.top);         // positions to get make (0,0) the top left of the 
+//   console.log(canvasX, canvasY)
+// });
 
 
 
 
-    topic.padding = padding
-    topic.left = startPos[0] - currTextSize.width / 2
-    topic.width = currTextSize.width
-    topic.down = startPos[1] + currTextSize.actualBoundingBoxAscent / 2 + currTextSize.actualBoundingBoxDescent / 2
-    topic.height = currTextSize.actualBoundingBoxAscent + currTextSize.actualBoundingBoxDescent
-
-
-    let canBePlaced = true
-
-    let directionsTried = 0
-
-    do {
-      canBePlaced = true
-
-      switch (directionOfDrawing) {
-        case 0:
-          topic.down -= jumpDistance
-          break;
-        case 1:
-          topic.left += jumpDistance
-          break;
-        case 2:
-          topic.down += jumpDistance
-          break;
-        case 3:
-          topic.left -= jumpDistance
-      }
-
-
-      placedTopics.forEach(placedTopic => {
-        if (topic.intersects(placedTopic)) {
-          canBePlaced = false
-        }
-      })
-
-      if (topic.left < 0 || (topic.left + topic.width > canvas.width) || topic.down > canvas.height || (topic.down - topic.height < 0)) {
-        topic.left = canvas.width / 2
-        topic.width = currTextSize.width
-        topic.down = canvas.height / 2
-        topic.height = currTextSize.actualBoundingBoxAscent + currTextSize.actualBoundingBoxDescent
-        canBePlaced = false
-        directionOfDrawing = (directionOfDrawing + 1) % 4
-        directionsTried += 1
-      }
-
-
-    } while (!canBePlaced && directionsTried < 4);
-
-
-
-    canvasCtx.fillText(word, topic.left, topic.down)
-    placedTopics.push(topic)
-    directionOfDrawing = (directionOfDrawing + 1) % 4
-    startPos = [topic.left, topic.down]
-    if (!canBePlaced) {
-      tilesNotDrawn++
-    }
-  })
-  if (tilesNotDrawn > 0) {
-
-    if (padding > 0) {
-      padding--
-    } else if (fontSize > 1) {
-      fontSize--
-    } else {
-      console.error(`couldnt draw ${tilesNotDrawn} tiles`)
-    }
-
-    drawCloud(topics)
-  }
-
-}
 
 
 const getTopicsJson = async (URL) => {
@@ -143,7 +41,7 @@ getTopicsJson("topics.json").then(topicsJson => {
     topics[i].textSize = i / (topics.length / 6) + 1
   }
 
-  temporaryTopics = topics
+  const currentCloud = new Cloud(topics, canvas, fontSlider, paddingSlider)
 
-  drawCloud(topics)
+  currentCloud.orderCloud()
 })
