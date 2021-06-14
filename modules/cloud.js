@@ -2,6 +2,7 @@ class Cloud {
     constructor(topics, canvas, fontSlider, paddingSlider) {
         this.topics = topics
         this.canvas = canvas
+        this.canvas.addEventListener("click", this.mouseClickHandler)
 
         this.fontSlider = fontSlider
         this.fontSlider.oninput = this.fontSliderChangeHandler
@@ -12,11 +13,32 @@ class Cloud {
         this.padding = this.paddingSlider.value
 
         this.jumpDistance = 5
+        this.drawingOffset = 0
 
         this.context = this.canvas.getContext('2d')
         this.canvas.width = window.innerWidth * 0.7
         this.canvas.height = this.canvas.width * 0.5625
     }
+
+    mouseClickHandler = (event) => {
+        const topicHeader = document.getElementById("topicHeader")
+        const totalParagraph = document.getElementById("totalParagraph")
+        const positiveParagraph = document.getElementById("positiveParagraph")
+        const neutralParagraph = document.getElementById("neutralParagraph")
+        const negativeParagraph = document.getElementById("negativeParagraph")
+        var cRect = this.canvas.getBoundingClientRect()
+        var canvasX = Math.round(event.clientX - cRect.left)
+        var canvasY = Math.round(event.clientY - cRect.top)
+        this.topics.forEach(topic => {
+            if (topic.contains([canvasX - this.drawingOffset[0], canvasY - this.drawingOffset[1]])) {
+                topicHeader.innerHTML = `Information on topic "${topic.label}":`
+                totalParagraph.innerHTML = `Total Mentions: ${topic.volume}`
+                positiveParagraph.innerHTML = `Positive Mentions: ${topic.sentiment["positive"]}`
+                neutralParagraph.innerHTML = `Neutral Mentions: ${topic.sentiment["neutral"]}`
+                negativeParagraph.innerHTML = `Negative Mentions: ${topic.sentiment["negative"]}`
+            }
+        })
+    };
 
     fontSliderChangeHandler = () => {
         this.fontSize = this.fontSlider.value
@@ -28,7 +50,7 @@ class Cloud {
         this.orderCloud()
     }
 
-    drawCloud = (offset) => {
+    drawCloud = () => {
         this.context.fillStyle = "#aaaaaa"
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
         this.topics.forEach(topic => {
@@ -38,7 +60,7 @@ class Cloud {
             if (topic.sentimentScore < 40)
                 this.context.fillStyle = "#9b111e"
             this.context.font = `${this.fontSize * topic.textSize}px sans serif`
-            this.context.fillText(topic.label, topic.left + offset[0], topic.down + offset[1])
+            this.context.fillText(topic.label, topic.left + this.drawingOffset[0], topic.down + this.drawingOffset[1])
         })
     }
 
@@ -141,13 +163,15 @@ class Cloud {
         } else {
             const leftGap = leftmostPos
             const rightGap = this.canvas.width - rightmostPos
-            const leftOffset = (rightGap - (rightGap + leftGap) / 2)
+            const leftOffset = (rightGap - (rightGap + leftGap) / 2) / 2
 
             const topGap = topmostPos
             const botGap = this.canvas.height - botmostPos
             const topOffset = (botGap - (botGap + topGap) / 2) / 2
 
-            this.drawCloud([leftOffset, topOffset])
+            this.drawingOffset = [leftOffset, topOffset]
+
+            this.drawCloud()
         }
 
 

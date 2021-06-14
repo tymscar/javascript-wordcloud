@@ -1,23 +1,10 @@
 import Topic from "./modules/topic.js"
 import Cloud from "./modules/cloud.js"
 
+
 const fontSlider = document.getElementById("fontSlider")
 const paddingSlider = document.getElementById("paddingSlider")
 const canvas = document.getElementById("cloudCanvas")
-
-
-
-
-
-// canvas.addEventListener("mousemove", function (e) {
-//   var cRect = canvas.getBoundingClientRect();              // Gets the CSS positions along with width/height
-//   var canvasX = Math.round(e.clientX - cRect.left);        // Subtract the 'left' of the canvas from the X/Y
-//   var canvasY = Math.round(e.clientY - cRect.top);         // positions to get make (0,0) the top left of the 
-//   console.log(canvasX, canvasY)
-// });
-
-
-
 
 
 
@@ -33,7 +20,10 @@ getTopicsJson("topics.json").then(topicsJson => {
   const topics = []
 
   topicsJson.forEach(topicJson => {
-    topics.push(new Topic(topicJson["label"], topicJson["volume"], topicJson["sentimentScore"]))
+    topics.push(new Topic(topicJson["label"],
+      topicJson["volume"],
+      topicJson["sentimentScore"],
+      topicJson["sentiment"]))
   })
 
   topics.sort((a, b) => (a.value > b.value) ? 1 : -1)
