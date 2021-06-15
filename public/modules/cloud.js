@@ -1,15 +1,29 @@
+import {
+	downloadButtonHandler,
+	windowResizeHandler,
+	mouseClickHandler,
+	fontSliderChangeHandler,
+	paddingSliderChangeHandler,
+} from './utilities.js';
+
 class Cloud {
 	constructor(topics, canvas, fontSlider, paddingSlider) {
 		this.topics = topics;
 		this.canvas = canvas;
-		this.canvas.addEventListener('click', this.mouseClickHandler);
+		this.canvas.addEventListener('click', (event) => {
+			mouseClickHandler(event, this);
+		});
 
 		this.fontSlider = fontSlider;
-		this.fontSlider.oninput = this.fontSliderChangeHandler;
+		this.fontSlider.oninput = (event) => {
+			fontSliderChangeHandler(this);
+		};
 		this.fontSize = this.fontSlider.value;
 
 		this.paddingSlider = paddingSlider;
-		this.paddingSlider.oninput = this.paddingSliderChangeHandler;
+		this.paddingSlider.oninput = (event) => {
+			paddingSliderChangeHandler(this);
+		};
 		this.padding = this.paddingSlider.value;
 
 		this.jumpDistance = 5;
@@ -21,58 +35,16 @@ class Cloud {
 
 		this.canvasToWindowRatio = this.canvas.width / window.innerWidth;
 
-		window.addEventListener('resize', this.windowResizeHandler);
+		window.addEventListener('resize', (event) => {
+			windowResizeHandler(this);
+		});
 
 		document
 			.getElementById('download_button')
-			.addEventListener('click', this.downloadButtonHandler);
+			.addEventListener('click', (event) => {
+				downloadButtonHandler(this);
+			});
 	}
-
-	downloadButtonHandler = (event) => {
-		const img = this.canvas.toDataURL('image/png');
-		document.write('<img src="' + img + '"/>');
-	};
-
-	windowResizeHandler = (event) => {
-		this.canvas.width = window.innerWidth * this.canvasToWindowRatio;
-		this.canvas.height = this.canvas.width * 0.5625;
-		this.orderCloud();
-	};
-
-	mouseClickHandler = (event) => {
-		const topicHeader = document.getElementById('topicHeader');
-		const totalParagraph = document.getElementById('totalParagraph');
-		const positiveParagraph = document.getElementById('positiveParagraph');
-		const neutralParagraph = document.getElementById('neutralParagraph');
-		const negativeParagraph = document.getElementById('negativeParagraph');
-		var cRect = this.canvas.getBoundingClientRect();
-		var canvasX = Math.round(event.clientX - cRect.left);
-		var canvasY = Math.round(event.clientY - cRect.top);
-		this.topics.forEach((topic) => {
-			if (
-				topic.contains([
-					canvasX - this.drawingOffset[0],
-					canvasY - this.drawingOffset[1],
-				])
-			) {
-				topicHeader.innerHTML = `Information on topic "${topic.label}":`;
-				totalParagraph.innerHTML = `Total Mentions: ${topic.volume}`;
-				positiveParagraph.innerHTML = `Positive Mentions: <span style="color: green">${topic.sentiment['positive']}</span>`;
-				neutralParagraph.innerHTML = `Neutral Mentions: <span style="color: black">${topic.sentiment['neutral']}</span>`;
-				negativeParagraph.innerHTML = `Negative Mentions: <span style="color: red">${topic.sentiment['negative']}</span>`;
-			}
-		});
-	};
-
-	fontSliderChangeHandler = () => {
-		this.fontSize = this.fontSlider.value;
-		this.orderCloud();
-	};
-
-	paddingSliderChangeHandler = () => {
-		this.padding = this.paddingSlider.value;
-		this.orderCloud();
-	};
 
 	drawCloud = () => {
 		this.context.fillStyle = '#ffffff';
@@ -91,15 +63,17 @@ class Cloud {
 	};
 
 	orderCloud = () => {
+		const orderedTopics = [];
+
 		let topmostPos = this.canvas.height;
 		let botmostPos = 0;
 		let leftmostPos = this.canvas.width;
 		let rightmostPos = 0;
-		const placedTopics = [];
+
 		let directionOfDrawing = 0;
 		let startPos = [this.canvas.width / 2, this.canvas.height / 2];
 
-		let tilesNotDrawn = 0;
+		let tilesNotPlaced = 0;
 
 		this.topics.forEach((topic) => {
 			this.context.font = `${this.fontSize * topic.textSize}px sans serif`;
@@ -117,9 +91,8 @@ class Cloud {
 				currTextSize.actualBoundingBoxAscent +
 				currTextSize.actualBoundingBoxDescent;
 
-			let canBePlaced = true;
-
 			let directionsTried = 0;
+			let canBePlaced = true;
 
 			do {
 				canBePlaced = true;
@@ -138,7 +111,7 @@ class Cloud {
 						topic.left -= this.jumpDistance;
 				}
 
-				placedTopics.forEach((placedTopic) => {
+				orderedTopics.forEach((placedTopic) => {
 					if (topic.intersects(placedTopic)) {
 						canBePlaced = false;
 					}
@@ -150,6 +123,7 @@ class Cloud {
 					topic.down > this.canvas.height ||
 					topic.down - topic.height < 0
 				) {
+					// if the topic is outside of the canvas, reset its position and try again in a different direction
 					topic.left = this.canvas.width / 2;
 					topic.width = currTextSize.width;
 					topic.down = this.canvas.height / 2;
@@ -162,12 +136,14 @@ class Cloud {
 				}
 			} while (!canBePlaced && directionsTried < 4);
 
-			placedTopics.push(topic);
+			orderedTopics.push(topic);
+
 			directionOfDrawing = (directionOfDrawing + 1) % 4;
 			startPos = [topic.left, topic.down];
 			if (!canBePlaced) {
-				tilesNotDrawn++;
+				tilesNotPlaced++;
 			} else {
+				// calculate the extremities of the drawing to be able to centre it later on
 				if (topic.down + topic.height < topmostPos)
 					topmostPos = topic.down + topic.height;
 				if (topic.left < leftmostPos) leftmostPos = topic.left;
@@ -176,16 +152,20 @@ class Cloud {
 				if (topic.down > botmostPos) botmostPos = topic.down;
 			}
 		});
-		if (tilesNotDrawn > 0) {
-			if (this.padding > 0) {
+		if (tilesNotPlaced > 0) {
+			// If there is any tile not placed on the screen,
+			// lower the padding and font sizes and reorder
+			// until you can fit them all
+			if (this.padding > 1) {
 				this.padding--;
-			} else if (this.fontSize > 1) {
+				this.orderCloud();
+			} else if (this.fontSize > 5) {
 				this.fontSize--;
+				this.orderCloud();
 			} else {
-				console.error(`couldnt draw ${tilesNotDrawn} tiles`);
+				console.error(`couldnt fit ${tilesNotPlaced} tiles`);
+				this.drawCloud();
 			}
-
-			this.orderCloud();
 		} else {
 			const leftGap = leftmostPos;
 			const rightGap = this.canvas.width - rightmostPos;
@@ -195,7 +175,7 @@ class Cloud {
 			const botGap = this.canvas.height - botmostPos;
 			const topOffset = (botGap - (botGap + topGap) / 2) / 2;
 
-			this.drawingOffset = [leftOffset, topOffset];
+			this.drawingOffset = [leftOffset, topOffset]; // How much to offset by to centre the cloud
 
 			this.drawCloud();
 		}
