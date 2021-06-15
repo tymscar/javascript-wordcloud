@@ -16,6 +16,7 @@ const getTopicsJson = async (URL) => {
 }
 
 
+
 getTopicsJson("topics.json").then(topicsJson => {
   const topics = []
 

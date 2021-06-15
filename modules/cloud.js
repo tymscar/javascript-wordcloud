@@ -16,8 +16,25 @@ class Cloud {
         this.drawingOffset = 0
 
         this.context = this.canvas.getContext('2d')
-        this.canvas.width = window.innerWidth * 0.7
+        this.canvas.width = document.getElementById("canvas-container").offsetWidth
         this.canvas.height = this.canvas.width * 0.5625
+
+        this.canvasToWindowRatio = this.canvas.width / window.innerWidth
+
+        window.addEventListener('resize', this.windowResizeHandler);
+
+        document.getElementById("download_button").addEventListener("click", this.downloadButtonHandler)
+    }
+
+    downloadButtonHandler = (event) => {
+        const img = this.canvas.toDataURL("image/png");
+        document.write('<img src="' + img + '"/>');
+    }
+
+    windowResizeHandler = (event) => {
+        this.canvas.width = window.innerWidth * this.canvasToWindowRatio
+        this.canvas.height = this.canvas.width * 0.5625
+        this.orderCloud()
     }
 
     mouseClickHandler = (event) => {
@@ -33,9 +50,9 @@ class Cloud {
             if (topic.contains([canvasX - this.drawingOffset[0], canvasY - this.drawingOffset[1]])) {
                 topicHeader.innerHTML = `Information on topic "${topic.label}":`
                 totalParagraph.innerHTML = `Total Mentions: ${topic.volume}`
-                positiveParagraph.innerHTML = `Positive Mentions: ${topic.sentiment["positive"]}`
-                neutralParagraph.innerHTML = `Neutral Mentions: ${topic.sentiment["neutral"]}`
-                negativeParagraph.innerHTML = `Negative Mentions: ${topic.sentiment["negative"]}`
+                positiveParagraph.innerHTML = `Positive Mentions: <span style="color: green">${topic.sentiment["positive"]}</span>`
+                neutralParagraph.innerHTML = `Neutral Mentions: <span style="color: black">${topic.sentiment["neutral"]}</span>`
+                negativeParagraph.innerHTML = `Negative Mentions: <span style="color: red">${topic.sentiment["negative"]}</span>`
             }
         })
     };
@@ -51,7 +68,7 @@ class Cloud {
     }
 
     drawCloud = () => {
-        this.context.fillStyle = "#aaaaaa"
+        this.context.fillStyle = "#ffffff"
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
         this.topics.forEach(topic => {
             this.context.fillStyle = "#414a4c"

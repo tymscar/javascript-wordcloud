@@ -8,21 +8,36 @@
     <title>My Topics Challenge</title>
     <meta name="author" content="tymscar">
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
 
 </head>
 
 <body>
-    <h1>My Topics Challenge</h1>
-    <canvas id="cloudCanvas"></canvas>
-    <div class="div_details">
-        <input type="range" min="5" max="10" value="10" class="slider" id="fontSlider">
-        <input type="range" min="10" max="20" value="15" class="slider" id="paddingSlider">
-        <h4 id="topicHeader">Information on topic *please select a topic*:</h4>
-        <p id="totalParagraph">Total Mentions: </p>
-        <p id="positiveParagraph">Positive Mentions: </p>
-        <p id="neutralParagraph">Neutral Mentions: </p>
-        <p id="negativeParagraph">Negative Mentions: </p>
+    <div class="grid-container">
+        <h1 class="title">My Topics Challenge</h1>
+        <div id="canvas-container">
+            <canvas id="cloudCanvas"></canvas>
+        </div>
+
+        <div class="div_details">
+            <h4 id="topicHeader">Information on topic *please select a topic*:</h4>
+            <p id="totalParagraph">Total Mentions: </p>
+            <p id="positiveParagraph">Positive Mentions: </p>
+            <p id="neutralParagraph">Neutral Mentions: </p>
+            <p id="negativeParagraph">Negative Mentions: </p>
+            <br>
+            <div>
+                <p><b>Font size:</b></p>
+                <input type="range" min="5" max="10" value="10" class="slider" id="fontSlider">
+            </div>
+            <div>
+                <p><b>Padding between words:</b></p>
+                <input type="range" min="10" max="20" value="15" class="slider" id="paddingSlider">
+            </div>
+            <br>
+            <button type="button" id="download_button">Download Wordcloud</button>
+
+        </div>
     </div>
     <script type="module" src="main.js"></script>
 </body>
