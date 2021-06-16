@@ -1,28 +1,36 @@
 import Topic from './topic.js';
 
-const getTopicsJson = async (URL) => {
-	const topicsResponse = await fetch(URL);
-	const topicsJson = await topicsResponse.json();
-	const topics = topicsJson['topics'];
-	return topics;
+export const getTopicsJson = async (URL) => {
+	try {
+		const topicsResponse = await fetch(URL);
+		const topicsJson = await topicsResponse.json();
+		const topics = topicsJson['topics'];
+		return topics;
+	} catch (error) {
+		console.error(error);
+	}
 };
 
 export const getListOfTopics = async (fromUrl) => {
-	const topicsJson = await getTopicsJson(fromUrl);
-	const topics = [];
+	try {
+		const topicsJson = await getTopicsJson(fromUrl);
+		const topics = [];
 
-	topicsJson.forEach((topicJson) => {
-		topics.push(
-			new Topic(
-				topicJson['label'],
-				topicJson['volume'],
-				topicJson['sentimentScore'],
-				topicJson['sentiment']
-			)
-		);
-	});
+		topicsJson.forEach((topicJson) => {
+			topics.push(
+				new Topic(
+					topicJson['label'],
+					topicJson['volume'],
+					topicJson['sentimentScore'],
+					topicJson['sentiment']
+				)
+			);
+		});
 
-	return topics;
+		return topics;
+	} catch (error) {
+		console.error(error);
+	}
 };
 
 export const populateTopicsWithSize = (topics) => {
